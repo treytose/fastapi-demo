@@ -3,19 +3,38 @@ from databases import Database
 
 class AsyncDB:
     def __init__(self):
+        DB_TYPE = os.getenv("DB_TYPE") or "mysql"
         DB_USER = os.getenv("DB_USER")
         DB_PASS = os.getenv("DB_PASS")
         DB_HOST = os.getenv("DB_HOST")
         DB_NAME = os.getenv("DB_NAME")
 
-        connection_string = 'mysql://%s:%s@%s/%s?charset=utf8' % (
-            DB_USER,
-            DB_PASS,
-            DB_HOST,
-            DB_NAME
-        )        
 
-        self.db = Database(connection_string)
+        if DB_TYPE == "mysql":
+            if not DB_USER:
+                raise Exception("Missing required environment variable: DB_USER")
+            if not DB_PASS:
+                raise Exception("Missing required environment variable: DB_PASS")
+            if not DB_HOST:
+                raise Exception("Missing required environment variable: DB_HOST")
+            if not DB_NAME:
+                raise Exception("Missing required environment variable: DB_NAME")
+
+            connection_string = 'mysql://%s:%s@%s/%s?charset=utf8' % (                
+                DB_USER,
+                DB_PASS,
+                DB_HOST,
+                DB_NAME
+            )        
+
+            self.db = Database(connection_string)
+        else:
+            if not DB_NAME:
+                raise Exception("Missing required environment variable: DB_NAME")
+                
+            self.db = Database("sqlite:////app/data/%s" % (
+                DB_NAME
+            ))
 
     async def connect(self):
         await self.db.connect()
